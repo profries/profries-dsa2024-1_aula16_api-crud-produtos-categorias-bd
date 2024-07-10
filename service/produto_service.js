@@ -1,5 +1,5 @@
 const produtoRepository = require('../repository/produto_repository_bd')
-
+const categoriaRepository = require('../repository/categoria_repository_bd')
 async function listar() {
     try{ 
         return await produtoRepository.listar();
@@ -10,16 +10,22 @@ async function listar() {
 }
 
 async function inserir(produto) {
-    if(produto && produto.nome && produto.preco) {// produto != undefined
-        try{ 
-            return await produtoRepository.inserir(produto);
+    if(produto && produto.nome && produto.idCategoria && produto.preco) {// produto != undefined
+        const categoriaExistente = await categoriaRepository.buscarPorId(produto.idCategoria);
+        if(categoriaExistente) {
+            try{ 
+                return await produtoRepository.inserir(produto);
+            }
+            catch (err) {                
+                throw {id: 500, message:err.message }
+            }
         }
-        catch (err) {
-            throw {id: 500, message:err.message }
+        else {
+            throw {id:400, message:"Categoria relacionada não existe"};
         }
     }
     else {
-        throw {id:400, message:"Produto nao possui nome ou preco"};
+        throw {id:400, message:"Produto nao possui nome ou categoria ou preco"};
     }
 }
 

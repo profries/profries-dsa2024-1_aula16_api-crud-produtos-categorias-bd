@@ -2,25 +2,42 @@ const {Pool} = require('pg');
 
 const pool = new Pool({
     user:"postgres",
-    password:"postgres",
+    password:"123456",
     host:"localhost",
-    port:5432,
+    port:5433,
     database:"crud_produtos_categorias"
 })
 
 
 async function listar() {
+    const sql = `
+    SELECT prod.id, prod.nome, prod.preco, 
+    cat.id as cat_id, cat.nome as cat_nome
+    FROM produtos prod
+    INNER JOIN categorias cat 
+    ON prod.id_categoria=cat.id`
+
     const cliente = await pool.connect();
-    const result = await cliente.query("SELECT * FROM produtos");
-    const listaProdutos = result.rows;   
+    const result = await cliente.query(sql);    
+    const listaProdutos = result.rows.map (produto => {
+        return {
+            id: produto.id,
+            nome: produto.nome,
+            preco: produto.preco,
+            categoria: {
+                id: produto.cat_id,
+                nome: produto.cat_nome
+            }
+        }
+    });   
     cliente.release();
     return listaProdutos;
 }
 
 async function inserir(produto) {
     const cliente = await pool.connect();
-    const sql = "INSERT INTO produtos(nome, categoria, preco) VALUES ($1, $2, $3) RETURNING *";
-    const values = [produto.nome, produto.categoria, produto.preco];
+    const sql = "INSERT INTO produtos(nome, id_categoria, preco) VALUES ($1, $2, $3) RETURNING *";
+    const values = [produto.nome, produto.idCategoria, produto.preco];
     const result = await cliente.query(sql, values);
     const produtoInserido = result.rows[0];
     cliente.release();
