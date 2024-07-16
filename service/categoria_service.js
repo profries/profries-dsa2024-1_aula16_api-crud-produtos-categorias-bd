@@ -64,6 +64,8 @@ async function atualizar(id, categoria) {
 }
 
 async function deletar(id) {
+    //Faltou validar se categoria está relacionada com produto
+    //Retornar 400 se existir relacao com algum produto.
     let categoriaDeletada;     
     try {  
         categoriaDeletada =  await categoriaRepository.deletar(id);

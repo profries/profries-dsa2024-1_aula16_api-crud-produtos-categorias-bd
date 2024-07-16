@@ -35,6 +35,7 @@ async function buscarPorId(id) {
         produto = await produtoRepository.buscarPorId(id);
     }
     catch(err) {
+        console.log("Error SQL:",err);
         throw {id: 500, message:err.message }
     }
 
@@ -49,11 +50,17 @@ async function buscarPorId(id) {
 
 async function atualizar(id, produto) { 
     if(produto && produto.nome && produto.preco) {// produto != undefined
-        let produtoAtualizado;     
-        try {  
-            produtoAtualizado =  await produtoRepository.atualizar(id,produto);  produtoRepository.atualizar(id,produto);
-        } catch(err) {
-            throw {id: 500, message:err.message }
+        const categoriaExistente = await categoriaRepository.buscarPorId(produto.idCategoria);
+        let produtoAtualizado;   
+        if(categoriaExistente) {
+            try {  
+                produtoAtualizado =  await produtoRepository.atualizar(id,produto);  produtoRepository.atualizar(id,produto);
+            } catch(err) {
+                throw {id: 500, message:err.message }
+            }
+        } 
+        else {
+            throw {id:400, message:"Categoria relacionada não existe"};
         }
         
         if(produtoAtualizado) {

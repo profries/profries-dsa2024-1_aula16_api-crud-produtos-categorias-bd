@@ -2,9 +2,9 @@ const {Pool} = require('pg');
 
 const pool = new Pool({
     user:"postgres",
-    password:"123456",
+    password:"postgres",
     host:"localhost",
-    port:5433,
+    port:5432,
     database:"crud_produtos_categorias"
 })
 
@@ -46,18 +46,34 @@ async function inserir(produto) {
 
 async function buscarPorId(id) {
     const cliente = await pool.connect();
-    const sql = "SELECT * from produtos WHERE id=$1";
+    const sql = `
+        SELECT prod.id, prod.nome, prod.preco, 
+        cat.id as cat_id, cat.nome as cat_nome
+        FROM produtos prod
+        INNER JOIN categorias cat 
+        ON prod.id_categoria=cat.id WHERE prod.id=$1`;
     const values = [id];
     const result = await cliente.query(sql, values);
     const produtoEncontrado = result.rows[0];
     cliente.release();
-    return (produtoEncontrado);
 
+    if(produtoEncontrado) {
+        return {
+            id: produtoEncontrado.id,
+            nome: produtoEncontrado.nome,
+            preco: produtoEncontrado.preco,
+            categoria: {
+                id: produtoEncontrado.cat_id,
+                nome: produtoEncontrado.cat_nome
+            }
+        }
+    }
+    return (undefined);
 }
 
 async function atualizar(id, produto) {
-    const sql = 'UPDATE produtos set nome=$1, categoria=$2, preco=$3 WHERE id=$4 RETURNING *'
-    const values = [produto.nome, produto.categoria, produto.preco, id];
+    const sql = 'UPDATE produtos set nome=$1, id_categoria=$2, preco=$3 WHERE id=$4 RETURNING *'
+    const values = [produto.nome, produto.idCategoria, produto.preco, id];
 
     const cliente = await pool.connect();
     const result = await cliente.query(sql, values);
@@ -76,9 +92,6 @@ async function deletar(id) {
     cliente.release();
     return (produtoDeletado);
 }
-
-
-
 
 module.exports = {
     listar, 
