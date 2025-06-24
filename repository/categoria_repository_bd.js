@@ -1,15 +1,7 @@
-const {Pool} = require('pg');
-
-const pool = new Pool({
-    user:"postgres",
-    password:"postgres",
-    host:"localhost",
-    port:5432,
-    database:"crud_produtos_categorias"
-})
+const bd = require('./bd')
 
 async function listar() {
-    const cliente = await pool.connect();
+    const cliente = await bd.connect();
     const result = await cliente.query("SELECT * FROM categorias");
     const listaCategorias = result.rows;   
     cliente.release();

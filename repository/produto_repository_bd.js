@@ -1,13 +1,4 @@
-const {Pool} = require('pg');
-
-const pool = new Pool({
-    user:"postgres",
-    password:"postgres",
-    host:"localhost",
-    port:5432,
-    database:"crud_produtos_categorias"
-})
-
+const bd = require('./bd')
 
 async function listar() {
     const sql = `
@@ -17,7 +8,7 @@ async function listar() {
     INNER JOIN categorias cat 
     ON prod.id_categoria=cat.id`
 
-    const cliente = await pool.connect();
+    const cliente = await bd.connect();
     const result = await cliente.query(sql);    
     const listaProdutos = result.rows.map (produto => {
         return {
